@@ -64,6 +64,7 @@ def solve(req,x,balisePrin){
 	sql.eachRow(req){row ->
 		def champsClient = client.get( path : 'xpath/'+serviceID+'/'+balisePrin)
 		for(String s : champsClient.getData()){
+			
 			if(s.split(":").length <= 1){
 				req = s.split("\\|")[0]
 				String tagValue = testRunner.testCase.testSteps["proResponse"].getPropertyValue(s.split("\\|")[1])
@@ -71,17 +72,18 @@ def solve(req,x,balisePrin){
 				solve(req,1,s.split("\\|")[2])
 			}
 			else{
-
+				name = s.split(":")[1]
+				
 				split = s.split(":")[1].split("_")
 				memeTable = s.split(":")[2]
 				calculated = s.split(":")[3]
 				multiple = "false"
 				def xpath = "//fjs1:"+balisePrin+"[$x]";
 				for(int i = split.length - 1; i >= 0;i--){
+					split[i] = split[i].replaceAll("[0-9]","")
 					xpath += "//fjs1:"+split[i]
 				}
-
-				name = s.split(":")[1]
+				
 				String p = "champ/"+serviceID+"/"+name
 				def cClient = client.get( path : p)
 				def resultFromRest = new Scanner(cClient.getData()).useDelimiter("\\A").next()
@@ -100,7 +102,6 @@ def solve(req,x,balisePrin){
 					String param = splitReq[0].split(" ")[1]
 
 					String tagValue = testRunner.testCase.testSteps["proResponse"].getPropertyValue(splitReq[1])
-					log.info tagValue
 					completeReq = splitReq[0].replaceAll("\\?",tagValue)
 					def myReq = sql.firstRow(completeReq)
 					if(calculated.equals("false"))
@@ -111,7 +112,7 @@ def solve(req,x,balisePrin){
 
 				}
 				sheet1.addCell(new Label(0, j, name));
-				if(name.startsWith("date")){
+				if(name.contains("date") || name.contains("Date")){
 					if(expected != "null")
 						expected = expected.substring(0,10);
 					if(observed != "null")
@@ -143,7 +144,7 @@ def solve(req,x,balisePrin){
 				j++;
 				testRunner.testCase.testSteps["proResponse"].setPropertyValue(name,expected)
 			}
-			log.info name
+			//log.info name
 		}
 		x++;
 	}
