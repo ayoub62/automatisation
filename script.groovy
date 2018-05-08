@@ -15,7 +15,6 @@ serviceName = "getCustomerBudgetDetail"
 com.eviware.soapui.support.GroovyUtils.registerJdbcDriver( "oracle.jdbc.driver.OracleDriver")
 
 
-
 sql = Sql.newInstance(dbUrl, dbUser, dbPassword, dbDriver)
 
 // ------------------------------- RECUPERER LA REQUETE COMPLETE -------------------------------
@@ -73,6 +72,7 @@ def solve(req,x,balisePrin){
 			}
 			else{
 				name = s.split(":")[1]
+				id = s.split(":")[0]
 				
 				split = s.split(":")[1].split("_")
 				memeTable = s.split(":")[2]
@@ -80,11 +80,10 @@ def solve(req,x,balisePrin){
 				multiple = "false"
 				def xpath = "//fjs1:"+balisePrin+"[$x]";
 				for(int i = split.length - 1; i >= 0;i--){
-					split[i] = split[i].replaceAll("[0-9]","")
 					xpath += "//fjs1:"+split[i]
 				}
-				
-				String p = "champ/"+serviceID+"/"+name
+				log.info xpath
+				String p = "champ/"+id
 				def cClient = client.get( path : p)
 				def resultFromRest = new Scanner(cClient.getData()).useDelimiter("\\A").next()
 				expected = ""
@@ -149,4 +148,3 @@ def solve(req,x,balisePrin){
 		x++;
 	}
 }
-
