@@ -7,12 +7,15 @@ import jxl.*
 import jxl.write.*
 
 // ------------------------------- PARAMETRAGE -------------------------------
-serviceID = 7
-def balisePrin = "customerBudgetDetail"
-serviceName = "getCustomerBudgetDetail"
+
+serviceID = 5
+def balisePrin = "customerEmailAddress"
+serviceName = "getCustomerEmailAddressList"
 
 // ------------------------------- CONNEXION A LA BASE DE DONNEES AMPLITUDE -------------------------------
+
 com.eviware.soapui.support.GroovyUtils.registerJdbcDriver( "oracle.jdbc.driver.OracleDriver")
+
 
 
 sql = Sql.newInstance(dbUrl, dbUser, dbPassword, dbDriver)
@@ -20,7 +23,7 @@ sql = Sql.newInstance(dbUrl, dbUser, dbPassword, dbDriver)
 // ------------------------------- RECUPERER LA REQUETE COMPLETE -------------------------------
 import groovyx.net.http.RESTClient
 
-client = new RESTClient( 'http://localhost:8080' )
+client = new RESTClient('http://localhost:8080')
 def resp = client.get( path : 'piste2/'+serviceID )
 
 Scanner scanner = new Scanner(resp.getData()).useDelimiter("\\A")
@@ -30,6 +33,14 @@ String req = scanner.next()
 
 def testStep = testRunner.testCase.testSteps["pro"]
 
+// ------------------------------- GETTING THE XML REQUEST -------------------------------
+
+def xmlReqCl = client.get( path : 'flow/'+serviceID )
+
+scanner = new Scanner(xmlReqCl.getData()).useDelimiter("\\A")
+String requestXML = scanner.next()
+testRunner.testCase.testSteps["pro"].setPropertyValue("request",requestXML)
+
 // ------------------------------- SENDING THE SOAP REQUEST -------------------------------
 
 testRunner.testCase.getTestStepByName("soapReq").run(testRunner,context)
@@ -37,7 +48,6 @@ def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context )
 responseHolder = groovyUtils.getXmlHolder( testRunner.testCase.testSteps["soapReq"].testRequest.response.responseContent )
 
 
-workbook1 = Workbook.createWorkbook(new File("d:\\Profiles\\aaitlahcen\\Desktop\\PERSO\\"+serviceName+".xls"))
 sheet1 = workbook1.createSheet("Rapport", 0)
 
 cellFont = new WritableFont(WritableFont.TIMES, 12);
@@ -143,7 +153,7 @@ def solve(req,x,balisePrin){
 				j++;
 				testRunner.testCase.testSteps["proResponse"].setPropertyValue(name,expected)
 			}
-			//log.info name
+			log.info name
 		}
 		x++;
 	}
