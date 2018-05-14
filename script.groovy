@@ -7,10 +7,9 @@ import jxl.*
 import jxl.write.*
 
 // ------------------------------- PARAMETRAGE -------------------------------
-
-serviceID = 5
-def balisePrin = "customerEmailAddress"
-serviceName = "getCustomerEmailAddressList"
+serviceID = 6
+def balisePrin = "amortizableLoan"
+serviceName = "getAmortizableLoanList"
 
 // ------------------------------- CONNEXION A LA BASE DE DONNEES AMPLITUDE -------------------------------
 
@@ -39,14 +38,15 @@ def xmlReqCl = client.get( path : 'flow/'+serviceID )
 
 scanner = new Scanner(xmlReqCl.getData()).useDelimiter("\\A")
 String requestXML = scanner.next()
-testRunner.testCase.testSteps["pro"].setPropertyValue("request",requestXML)
+
+context.testCase.getTestStepAt(0).testRequest.requestContent = requestXML
+
 
 // ------------------------------- SENDING THE SOAP REQUEST -------------------------------
 
 testRunner.testCase.getTestStepByName("soapReq").run(testRunner,context)
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context )
 responseHolder = groovyUtils.getXmlHolder( testRunner.testCase.testSteps["soapReq"].testRequest.response.responseContent )
-
 
 sheet1 = workbook1.createSheet("Rapport", 0)
 
@@ -158,3 +158,4 @@ def solve(req,x,balisePrin){
 		x++;
 	}
 }
+
