@@ -10,6 +10,8 @@ import jxl.write.*
 serviceID = 6
 def balisePrin = "amortizableLoan"
 serviceName = "getAmortizableLoanList"
+limit = 30
+rowID = 0;
 
 // ------------------------------- CONNEXION A LA BASE DE DONNEES AMPLITUDE -------------------------------
 
@@ -64,13 +66,16 @@ sheet1.addCell(new Label(0, 0, "Le statut de la réponse"));
 sheet1.addCell(new Label(1, 0, responseHolder.getNodeValue("//fjs1:statusCode")));
 int x = 1
 j = 1
-
 solve(req,1,balisePrin)
 workbook1.write()
 workbook1.close()
 
 def solve(req,x,balisePrin){
-	sql.eachRow(req){row ->
+	List rows = sql.rows(req)
+	for(int k = 0;k < rows.size();k++){
+		if(k == limit)
+			break;
+		row = rows[k]
 		def champsClient = client.get( path : 'xpath/'+serviceID+'/'+balisePrin)
 		for(String s : champsClient.getData()){
 			
@@ -158,4 +163,3 @@ def solve(req,x,balisePrin){
 		x++;
 	}
 }
-
