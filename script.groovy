@@ -5,6 +5,8 @@ import java.io.File
 import java.io.IOException
 import jxl.*
 import java.util.*
+import java.util.HashMap;
+import java.util.Map;
 import jxl.write.*
 
 client = new RESTClient('http://localhost:8080')
@@ -12,7 +14,8 @@ client = new RESTClient('http://localhost:8080')
 // ------------------------------- PARAMETRAGE -------------------------------
 campagneTest = 1
 
-
+// données temporelles
+map = [:]
 
 def caminfo = client.get( path : 'campagneInfo/'+campagneTest )
 def camList = caminfo.getData()
@@ -108,7 +111,8 @@ def solve(req,x,balisePrin){
 				
 				if(s.split(":").length <= 1){
 					req = s.split("\\|")[0]
-					String tagValue = testRunner.testCase.testSteps["proResponse"].getPropertyValue(s.split("\\|")[1])
+					String tagValue = map.get(s.split("\\|")[1])
+					log.info tagValue+" *****"
 					req = req.replaceAll('\\?',tagValue)
 					solve(req,1,s.split("\\|")[2])
 				}
@@ -141,8 +145,7 @@ def solve(req,x,balisePrin){
 	
 						String[] splitReq = resultFromRest.split("\\|")
 						String param = splitReq[0].split(" ")[1]
-	
-						String tagValue = testRunner.testCase.testSteps["proResponse"].getPropertyValue(splitReq[1])
+						String tagValue = map.get(splitReq[1])
 						completeReq = splitReq[0].replaceAll("\\?",tagValue)
 						def myReq = sql.firstRow(completeReq)
 						if(calculated.equals("false"))
@@ -183,12 +186,13 @@ def solve(req,x,balisePrin){
 					}
 	
 					j++;
-					testRunner.testCase.testSteps["proResponse"].setPropertyValue(name,expected)
+					map.put(name,expected)
 				}
 				log.info name
 			}
 			x++;
 		}
 	}
+
 
 
