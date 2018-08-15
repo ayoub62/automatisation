@@ -4,36 +4,45 @@ import java.sql.DriverManager
 import java.io.File
 import java.io.IOException
 import jxl.*
+import java.util.*
 import jxl.write.*
 
-// ------------------------------- PARAMETRAGE -------------------------------
-serviceID = 6
-def balisePrin = "amortizableLoan"
-serviceName = "getAmortizableLoanList"
-limit = 30
-rowID = 0;
+client = new RESTClient('http://localhost:8080')
 
+// ------------------------------- PARAMETRAGE -------------------------------
+campagneTest = 1
+// ----------------------------------------
+
+def caminfo = client.get( path : 'campagneInfo/'+campagneTest )
+def camList = caminfo.getData()
+serviceID = camList.get(0) // id
+def balisePrin = camList.get(1) // MainTag
+serviceName = camList.get(2) // name
+limit = 100
+rowID = 0;
 // ------------------------------- CONNEXION A LA BASE DE DONNEES AMPLITUDE -------------------------------
 
 com.eviware.soapui.support.GroovyUtils.registerJdbcDriver( "oracle.jdbc.driver.OracleDriver")
 
 
+def dbSchema = camList.get(3)
+def dbServer = camList.get(4)
+def dbUser = camList.get(5)
+def dbPassword = camList.get(6)
+def dbDriver = 'oracle.jdbc.driver.OracleDriver'
+def dbUrl = 'jdbc:oracle:thin:@' + dbServer + ':1521:' + dbSchema
 
 sql = Sql.newInstance(dbUrl, dbUser, dbPassword, dbDriver)
-
 // ------------------------------- RECUPERER LA REQUETE COMPLETE -------------------------------
 import groovyx.net.http.RESTClient
 
-client = new RESTClient('http://localhost:8080')
 def resp = client.get( path : 'piste2/'+serviceID )
 
 Scanner scanner = new Scanner(resp.getData()).useDelimiter("\\A")
 String req = scanner.next()
-
+log.info req
 // ------------------------------- RECUPERER TOUS LES CHAMPS DU FLUX DE REPONSE -------------------------------
-
 def testStep = testRunner.testCase.testSteps["pro"]
-
 // ------------------------------- GETTING THE XML REQUEST -------------------------------
 
 def xmlReqCl = client.get( path : 'flow/'+serviceID )
@@ -45,11 +54,12 @@ context.testCase.getTestStepAt(0).testRequest.requestContent = requestXML
 
 
 // ------------------------------- SENDING THE SOAP REQUEST -------------------------------
-
+	
 testRunner.testCase.getTestStepByName("soapReq").run(testRunner,context)
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context )
 responseHolder = groovyUtils.getXmlHolder( testRunner.testCase.testSteps["soapReq"].testRequest.response.responseContent )
 
+workbook1 = Workbook.createWorkbook(new File("d:\\Profiles\\aaitlahcen\\Desktop\\PERSO\\"+serviceName+".xls"))
 sheet1 = workbook1.createSheet("Rapport", 0)
 
 cellFont = new WritableFont(WritableFont.TIMES, 12);
@@ -71,8 +81,11 @@ workbook1.write()
 workbook1.close()
 
 def solve(req,x,balisePrin){
+	log.info "here"
 	List rows = sql.rows(req)
+	log.info rows.size()
 	for(int k = 0;k < rows.size();k++){
+		log.info "here"
 		if(k == limit)
 			break;
 		row = rows[k]
@@ -163,3 +176,4 @@ def solve(req,x,balisePrin){
 		x++;
 	}
 }
+
